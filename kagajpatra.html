@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kagaj-Patra Sahayogi | Nepal 2026</title>
+    <style>
+        :root { --primary: #1a4a9e; --secondary: #d9232e; --light: #f4f7f6; --success: #28a745; --accent: #ffd700; }
+        
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; padding: 15px;
+            background: linear-gradient(-45deg, #1a4a9e, #23a6d5, #23d5ab, #1a4a9e);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container { 
+            width: 100%; max-width: 480px; 
+            background: rgba(255, 255, 255, 0.96); 
+            padding: 25px; border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        /* Views and Forms */
+        .view, .auth-form { display: none; }
+        .view.active, .auth-form.active { display: block; }
+        
+        h1, h2, h3 { color: var(--primary); text-align: center; margin-top: 0; }
+        .toggle-text { text-align: center; font-size: 14px; margin-top: 15px; color: var(--primary); cursor: pointer; font-weight: bold; text-decoration: underline; }
+        
+        select, input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ccc; border-radius: 12px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 8px rgba(26, 74, 158, 0.2); }
+        
+        .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; transition: 0.3s; }
+        .btn:active { transform: scale(0.97); }
+        .btn-phone { background: var(--success); }
+        
+        /* Specialized UI Components */
+        .docs-panel { background: #eef4ff; padding: 15px; border-radius: 12px; margin: 15px 0; border-left: 5px solid var(--primary); }
+        .audit-msg { padding: 15px; border-radius: 12px; margin-top: 15px; font-weight: bold; text-align: center; line-height: 1.6; }
+        .chatbot-ui { border: 1px solid #ddd; border-radius: 15px; padding: 15px; background: white; margin-top: 30px; }
+        #chat-box { height: 120px; overflow-y: auto; border-bottom: 1px solid #eee; margin-bottom: 10px; font-size: 14px; padding-bottom: 5px; }
+
+        #camera-container { width: 100%; background: #000; border-radius: 12px; overflow: hidden; margin-top: 15px; display: none; }
+        video { width: 100%; transform: scaleX(-1); }
+        #photo-preview { width: 100%; border-radius: 12px; margin-top: 15px; display: none; border: 3px solid var(--primary); }
+        
+        .input-error { border: 2px solid var(--secondary) !important; animation: shake 0.3s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="view-auth" class="view active">
+        <div id="form-login" class="auth-form active">
+            <h1>लग-इन (Login) 🇳🇵</h1>
+            <input type="email" id="login-email" placeholder="इमेल (Email Address)">
+            <input type="password" id="login-pass" placeholder="पासवर्ड (Password)">
+            <button class="btn" onclick="validateLogin()">लग-इन गर्नुहोस् (Sign In)</button>
+            <p class="toggle-text" onclick="toggleAuth()">खाता छैन? बनाउनुहोस् (Create Account)</p>
+        </div>
+
+        <div id="form-signup" class="auth-form">
+            <h1>दर्ता गर्नुहोस् (Register) 🆕</h1>
+            <input type="text" id="reg-name" placeholder="पुरा नाम (Full Name)">
+            <input type="email" id="reg-email" placeholder="इमेल (Email Address)">
+            <input type="password" id="reg-pass" placeholder="पासवर्ड (Password)">
+            <button class="btn" onclick="validateSignup()">खाता बनाउनुहोस् (Sign Up)</button>
+            <p class="toggle-text" onclick="toggleAuth()">खाता छ? लग-इन गर्नुहोस् (Login)</p>
+        </div>
+
+        <div style="text-align:center; margin: 20px 0; color:#888;">— अथवा (OR) —</div>
+        
+        <input type="number" id="phone" placeholder="Phone Number (+977)">
+        <button class="btn btn-phone" onclick="sendOTP()">OTP प्राप्त गर्नुहोस् (Get OTP)</button>
+        
+        <div id="otp-section" style="display:none; margin-top:10px;">
+            <input type="number" id="otp-code" placeholder="Enter 6-Digit OTP">
+            <button class="btn" onclick="verifyOTP()">प्रमाणित गर्नुहोस् (Verify)</button>
+        </div>
+    </div>
+
+    <div id="view-app" class="view">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h2 id="greet-user" style="margin:0;">नमस्ते!</h2>
+            <p style="font-size: 14px; color: #555; margin-top: 5px;">कागज-पत्र सहयोगी | २०२६</p>
+            <button onclick="location.reload()" style="color:var(--secondary); border:none; background:none; cursor:pointer; font-weight:bold;">[ लग-आउट / Logout ]</button>
+        </div>
+
+        <div id="docs-panel" class="docs-panel" style="display:none;">
+            <h4 style="margin:0 0 10px 0; color:var(--primary);">आवश्यक कागजातहरू (Checklist):</h4>
+            <ul id="docs-list" style="font-size:14px; padding-left:20px; margin:0;"></ul>
+        </div>
+
+        <label><b>सेवा छनोट गर्नुहोस् (Select Service):</b></label>
+        <select id="serviceType" onchange="switchService()">
+            <option value="">-- छनोट गर्नुहोस् --</option>
+            <option value="passport">राहदानी (e-Passport)</option>
+            <option value="license">लाइसेन्स नवीकरण (License Renewal)</option>
+            <option value="nid">राष्ट्रिय परिचयपत्र (National ID)</option>
+        </select>
+
+        <div id="questions-area"></div>
+
+        <div id="camera-area" style="display:none; margin-top:20px;">
+            <button class="btn" style="background:#6c757d" onclick="startCamera()">📸 क्यामरा खोल्नुहोस् (Open Camera)</button>
+            <div id="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <button class="btn" style="margin:0; border-radius:0;" onclick="takePhoto()">फोटो खिच्नुहोस् (Capture)</button>
+            </div>
+            <img id="photo-preview">
+        </div>
+
+        <div id="audit-report"></div>
+        <button id="audit-btn" class="btn" style="display:none; margin-top:20px;" onclick="finalAudit()">जाँच सुरु गर्नुहोस् (Run Audit)</button>
+
+        <div class="chatbot-ui">
+            <h4 style="margin:0 0 10px 0;">💬 सहयोगी च्याटबोट (Chatbot)</h4>
+            <div id="chat-box">नमस्ते! के म मद्दत गर्न सक्छु?</div>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="chat-input" placeholder="प्रशन सोध्नुहोस् (Ask info...)" style="margin:0; flex:1; font-size: 14px;">
+                <button class="btn" onclick="askChatbot()" style="margin:0; width:auto; padding:10px;">पठाउनुहोस्</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let globalUserName = "Citizen";
+    const docData = {
+        passport: ["Original Citizenship", "NID Number Printout", "Payment Voucher (Rs. 5k/10k)", "Previous Passport"],
+        license: ["Original Citizenship", "Recent Medical Report", "Blood Group Card", "Unpaid Fine Receipt (if any)"],
+        nid: ["Original Citizenship Certificate", "Marriage Certificate (for women)", "Migration Certificate (if address changed)"]
+    };
+
+    function toggleAuth() {
+        document.getElementById('form-login').classList.toggle('active');
+        document.getElementById('form-signup').classList.toggle('active');
+    }
+
+    function validateLogin() {
+        const e = document.getElementById('login-email');
+        const p = document.getElementById('login-pass');
+        if (!e.value || !p.value) {
+            alert("Email and Password required!");
+            e.classList.add('input-error'); p.classList.add('input-error');
+            return;
+        }
+        enterApp();
+    }
+
+    function validateSignup() {
+        const n = document.getElementById('reg-name');
+        if (!n.value) return alert("Please enter your name!");
+        globalUserName = n.value;
+        enterApp();
+    }
+
+    function sendOTP() {
+        if(document.getElementById('phone').value.length < 10) return alert("Valid phone required!");
+        document.getElementById('otp-section').style.display = 'block';
+        alert("OTP Sent: 123456 (Demo Code)");
+    }
+
+    function verifyOTP() {
+        const code = document.getElementById('otp-code').value;
+        if (code.length !== 6) {
+            alert("Error: OTP must be 6 digits!");
+            document.getElementById('otp-code').classList.add('input-error');
+        } else {
+            enterApp();
+        }
+    }
+
+    function enterApp() {
+        document.getElementById('greet-user').innerText = "नमस्ते " + globalUserName + "!";
+        document.getElementById('view-auth').classList.remove('active');
+        document.getElementById('view-app').classList.add('active');
+    }
+
+    function switchService() {
+        const service = document.getElementById('serviceType').value;
+        const qBox = document.getElementById('questions-area');
+        const dPanel = document.getElementById('docs-panel');
+        const dList = document.getElementById('docs-list');
+        const cam = document.getElementById('camera-area');
+        const btn = document.getElementById('audit-btn');
+
+        qBox.innerHTML = ""; dList.innerHTML = ""; document.getElementById('audit-report').innerHTML = "";
+        document.getElementById('photo-preview').style.display = 'none';
+
+        if(!service) { dPanel.style.display = 'none'; cam.style.display = 'none'; btn.style.display = 'none'; return; }
+        
+        dPanel.style.display = 'block'; cam.style.display = 'block'; btn.style.display = 'block';
+        docData[service].forEach(d => { let li = document.createElement('li'); li.innerText = d; dList.appendChild(li); });
+
+        if(service === 'passport') {
+            qBox.innerHTML = `<label>Do you have your NID Number?</label><select id="chk1"><option value="y">Yes</option><option value="n">No</option></select>`;
+        } else if(service === 'license') {
+            qBox.innerHTML = `<label>Do you have unpaid Traffic Fines (Challan)?</label><select id="chk1"><option value="n">No (I am clear)</option><option value="y">Yes (I have fines)</option></select>`;
+        } else {
+            qBox.innerHTML = `<label>Is your citizenship from this district?</label><select id="chk1"><option value="y">Yes</option><option value="n">No</option></select>`;
+        }
+    }
+
+    let stream = null;
+    async function startCamera() {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        document.getElementById('video').srcObject = stream;
+        document.getElementById('camera-container').style.display = 'block';
+    }
+
+    function takePhoto() {
+        const v = document.getElementById('video');
+        const c = document.createElement('canvas');
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        document.getElementById('photo-preview').src = c.toDataURL('image/png');
+        document.getElementById('photo-preview').style.display = 'block';
+        stream.getTracks().forEach(t => t.stop());
+        document.getElementById('camera-container').style.display = 'none';
+    }
+
+    function finalAudit() {
+        const svc = document.getElementById('serviceType').value;
+        const ans = document.getElementById('chk1').value;
+        const rep = document.getElementById('audit-report');
+        let ok = false, nMsg = "", eMsg = "";
+
+        if(svc === 'passport') {
+            if(ans === 'y') { ok = true; nMsg = "राहदानी प्रक्रियाको लागि अघि बढ्न सक्नुहुन्छ।"; eMsg = "Ready for Passport process."; }
+            else { nMsg = "NID बिना राहदानी बन्दैन।"; eMsg = "NID is mandatory for Passport."; }
+        } else if(svc === 'license') {
+            if(ans === 'n') { ok = true; nMsg = "जरिवाना बाँकी छैन। नवीकरण सफल हुनेछ।"; eMsg = "No fines. Ready for renewal."; }
+            else { nMsg = "कृपया पहिले ट्राफिक जरिवाना तिर्नुहोस्।"; eMsg = "Please pay traffic fines first."; }
+        } else {
+            if(ans === 'y') { ok = true; nMsg = "विवरण ठिक छ।"; eMsg = "NID processing ready."; }
+            else { nMsg = "बसाइँसराईको प्रमाण पत्र आवश्यक पर्नेछ।"; eMsg = "Migration certificate required."; }
+        }
+
+        rep.innerHTML = `<div class="audit-msg" style="background:${ok?'#d4edda':'#f8d7da'}; color:${ok?'#155724':'#721c24'};">✅ ${nMsg}<br>${eMsg}</div>`;
+    }
+
+    function askChatbot() {
+        const box = document.getElementById('chat-box');
+        const q = document.getElementById('chat-input').value.toLowerCase();
+        let a = "Please use keywords like 'NID', 'Photo', or 'Fee'.";
+
+        if(q.includes("nid")) a = "NID (राष्ट्रिय परिचयपत्र) starts at the DAO office. Bring original citizenship.";
+        if(q.includes("photo")) a = "Wear dark clothes for Passport photos. No light/white shirts.";
+        if(q.includes("fee")) a = "Passport: 5k (Normal) or 10k (Fast). Pay via Bank/ConnectIPS.";
+        
+        box.innerHTML += `<div style="margin-top:5px;"><b>You:</b> ${q}</div><div style="color:var(--primary);"><b>Bot:</b> ${a}</div>`;
+        document.getElementById('chat-input').value = "";
+        box.scrollTop = box.scrollHeight;
+    }
+</script>
+</body>
+</html>
